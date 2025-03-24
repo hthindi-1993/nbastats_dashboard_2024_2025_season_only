@@ -30,7 +30,7 @@ league_player_regularseason_gamelogs_advanced = pd.DataFrame()
 
 from requests.exceptions import ReadTimeout, ConnectionError
 
-def get_player_game_logs(season_start_year, date_from, date_to, retries=3, delay=5):
+def get_player_game_logs(season_start_year, date_from, date_to, retries=3, delay=5,timeout=60):
     season_begin = str(season_start_year)
     season_end = str(season_start_year + 1)[2:]
 
@@ -41,7 +41,7 @@ def get_player_game_logs(season_start_year, date_from, date_to, retries=3, delay
                 season_nullable=f'{season_begin}-{season_end}',
                 date_from_nullable=date_from,
                 date_to_nullable=date_to
-            ).get_data_frames()[0][[
+            ).get_data_frames(requests_kwargs={'timeout': timeout})[0][[
                 'SEASON_YEAR', 'PLAYER_ID', 'PLAYER_NAME', 'NICKNAME', 'TEAM_ID',
                 'TEAM_ABBREVIATION', 'TEAM_NAME', 'GAME_ID', 'GAME_DATE', 'MATCHUP',
                 'WL', 'MIN', 'FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A', 'FG3_PCT', 'FTM',
@@ -62,14 +62,14 @@ def get_player_game_logs(season_start_year, date_from, date_to, retries=3, delay
     raise Exception("Failed to retrieve player game logs after multiple attempts.")
 
 
-def get_player_game_logs_advanced(season_start_year, date_from, date_to, retries=3, delay=5):
+def get_player_game_logs_advanced(season_start_year, date_from, date_to, retries=3, delay=5,timeout=60):
     season_begin = str(season_start_year)
     season_end = str(season_start_year + 1)[2:]
 
     for attempt in range(retries):
         try:
             df=playergamelogs.PlayerGameLogs(season_type_nullable='Regular Season',season_nullable=f'{season_begin}-{season_end}',date_from_nullable=date_from,date_to_nullable = date_to,
-                measure_type_player_game_logs_nullable='Advanced').get_data_frames()[0][['SEASON_YEAR', 'PLAYER_ID', 'PLAYER_NAME', 'NICKNAME', 'TEAM_ID',
+                measure_type_player_game_logs_nullable='Advanced').get_data_frames(requests_kwargs={'timeout': timeout})[0][['SEASON_YEAR', 'PLAYER_ID', 'PLAYER_NAME', 'NICKNAME', 'TEAM_ID',
                 'TEAM_ABBREVIATION', 'TEAM_NAME', 'GAME_ID', 'GAME_DATE', 'MATCHUP',
                 'WL', 'MIN', 'OFF_RATING','DEF_RATING','NET_RATING', 'AST_PCT', 'AST_TO', 'AST_RATIO',
                 'OREB_PCT', 'DREB_PCT', 'REB_PCT', 'TM_TOV_PCT', 'EFG_PCT',

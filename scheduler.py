@@ -3,6 +3,7 @@ import sqlite3
 import os
 import pandas as pd
 from datetime import datetime, timedelta
+import time
 
 db_path = os.path.join("sqlite3_DB", "NbaPlayers_2024_2025_Traditional_And_Advanced_Stats.db")
 
@@ -62,7 +63,9 @@ def get_player_game_logs_advanced(season_start_year,date_from):
 
 for start in range(season_start_year,season_end_year):
     league_player_regularseason_gamelogs=pd.concat([league_player_regularseason_gamelogs,get_player_game_logs(start,formatted_date_from)],axis=0)
+    time.sleep(1.5)
     league_player_regularseason_gamelogs_advanced=pd.concat([league_player_regularseason_gamelogs_advanced,get_player_game_logs_advanced(start,formatted_date_from)],axis=0)
+    time.sleep(1.5)
 
 
 def insert_league_player_regularseason_gamelogs(df, conn):

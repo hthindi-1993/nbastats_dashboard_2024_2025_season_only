@@ -43,7 +43,7 @@ WITH T1 AS (
         ROUND(100 * SUM(regstats.PLUS_MINUS) / NULLIF(SUM(advancedstats.POSS), 0), 1) AS '+/-',
         SUM(regstats.DD2) AS DoubleDouble,
         SUM(regstats.TD3) AS TripleDouble,
-        Max(Game_Date) AS LastGamePlayed
+        MAX(regstats.Game_Date) AS LastGamePlayed
     FROM NBA_PLAYER_GAMELOGS_REGULARSEASON regstats
     JOIN NBA_PLAYER_GAMELOGS_REGULARSEASON_ADVANCED advancedstats
         ON regstats.PLAYER_ID = advancedstats.PLAYER_ID 
@@ -81,7 +81,7 @@ WITH T2 AS (
         ROUND(100 * SUM(regstats.PLUS_MINUS) / NULLIF(SUM(advancedstats.POSS), 0), 1) AS '+/-',
         SUM(regstats.DD2) AS DoubleDouble,
         SUM(regstats.TD3) AS TripleDouble,
-        Max(Game_Date) AS LastGamePlayed
+        MAX(regstats.Game_Date) AS LastGamePlayed
     FROM NBA_PLAYER_GAMELOGS_REGULARSEASON regstats
     JOIN NBA_PLAYER_GAMELOGS_REGULARSEASON_ADVANCED advancedstats
         ON regstats.PLAYER_ID = advancedstats.PLAYER_ID 

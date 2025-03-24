@@ -7,7 +7,7 @@ on:
 
 jobs:
   run-scheduler:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 60
 
     steps:
@@ -17,7 +17,7 @@ jobs:
     - name: 🐍 Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: "3.12"
+        python-version: "3.10"
 
     - name: 📦 Install dependencies
       run: |

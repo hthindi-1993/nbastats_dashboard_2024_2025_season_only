@@ -4,6 +4,7 @@ import os
 import pandas as pd
 from datetime import datetime, timedelta
 import time
+from requests.exceptions import ReadTimeout, ConnectionError
 
 db_path = os.path.join("sqlite3_DB", "NbaPlayers_2024_2025_Traditional_And_Advanced_Stats.db")
 
@@ -27,50 +28,71 @@ formatted_date_to = f"{dt_today.month}/{dt_today.day}/{dt_today.year}"
 league_player_regularseason_gamelogs = pd.DataFrame()
 league_player_regularseason_gamelogs_advanced = pd.DataFrame()
 
+from requests.exceptions import ReadTimeout, ConnectionError
 
-def get_player_game_logs(season_start_year,date_from,date_to):
+def get_player_game_logs(season_start_year, date_from, date_to, retries=3, delay=5):
     season_begin = str(season_start_year)
-    season_end = str(season_start_year+1)[2:]
-    df=playergamelogs.PlayerGameLogs(season_type_nullable='Regular Season',season_nullable=f'{season_begin}-{season_end}',date_from_nullable=date_from,date_to_nullable = date_to).get_data_frames()[0][[
-    'SEASON_YEAR', 'PLAYER_ID', 'PLAYER_NAME', 'NICKNAME', 'TEAM_ID',
-       'TEAM_ABBREVIATION', 'TEAM_NAME', 'GAME_ID', 'GAME_DATE', 'MATCHUP',
-       'WL', 'MIN', 'FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A', 'FG3_PCT', 'FTM',
-       'FTA', 'FT_PCT', 'OREB', 'DREB', 'REB', 'AST', 'TOV', 'STL', 'BLK',
-       'BLKA', 'PF', 'PFD', 'PTS', 'PLUS_MINUS', 'DD2',
-       'TD3','AVAILABLE_FLAG', 'MIN_SEC'
-    ]]
-    df['SEASON_START'] = str(season_start_year)
-    df['SEASON_END'] = str(season_start_year+1)
-    df['PLAYER_NAME'] = df['PLAYER_NAME'].replace('Jimmy Butler III','Jimmy Butler')    
-    df['MIN_SEC'] = df['MIN_SEC'].apply(lambda x: int(x.split(':')[0])+int(x.split(':')[1])/60)
-    return df
+    season_end = str(season_start_year + 1)[2:]
 
-def get_player_game_logs_advanced(season_start_year,date_from,date_to):
+    for attempt in range(retries):
+        try:
+            df = playergamelogs.PlayerGameLogs(
+                season_type_nullable='Regular Season',
+                season_nullable=f'{season_begin}-{season_end}',
+                date_from_nullable=date_from,
+                date_to_nullable=date_to
+            ).get_data_frames()[0][[
+                'SEASON_YEAR', 'PLAYER_ID', 'PLAYER_NAME', 'NICKNAME', 'TEAM_ID',
+                'TEAM_ABBREVIATION', 'TEAM_NAME', 'GAME_ID', 'GAME_DATE', 'MATCHUP',
+                'WL', 'MIN', 'FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A', 'FG3_PCT', 'FTM',
+                'FTA', 'FT_PCT', 'OREB', 'DREB', 'REB', 'AST', 'TOV', 'STL', 'BLK',
+                'BLKA', 'PF', 'PFD', 'PTS', 'PLUS_MINUS', 'DD2',
+                'TD3', 'AVAILABLE_FLAG', 'MIN_SEC'
+            ]]
+            df['SEASON_START'] = str(season_start_year)
+            df['SEASON_END'] = str(season_start_year + 1)
+            df['PLAYER_NAME'] = df['PLAYER_NAME'].replace('Jimmy Butler III', 'Jimmy Butler')
+            df['MIN_SEC'] = df['MIN_SEC'].apply(lambda x: int(x.split(':')[0]) + int(x.split(':')[1]) / 60)
+            return df
+
+        except (ReadTimeout, ConnectionError) as e:
+            print(f"⏳ Timeout occurred (attempt {attempt + 1}/{retries}). Retrying in {delay}s...")
+            time.sleep(delay)
+
+    raise Exception("Failed to retrieve player game logs after multiple attempts.")
+
+
+def get_player_game_logs_advanced(season_start_year, date_from, date_to, retries=3, delay=5):
     season_begin = str(season_start_year)
-    season_end = str(season_start_year+1)[2:]
-    df=playergamelogs.PlayerGameLogs(season_type_nullable='Regular Season',season_nullable=f'{season_begin}-{season_end}',date_from_nullable=date_from,date_to_nullable = date_to,
-    measure_type_player_game_logs_nullable='Advanced').get_data_frames()[0][['SEASON_YEAR', 'PLAYER_ID', 'PLAYER_NAME', 'NICKNAME', 'TEAM_ID',
-       'TEAM_ABBREVIATION', 'TEAM_NAME', 'GAME_ID', 'GAME_DATE', 'MATCHUP',
-       'WL', 'MIN', 'OFF_RATING','DEF_RATING','NET_RATING', 'AST_PCT', 'AST_TO', 'AST_RATIO',
-       'OREB_PCT', 'DREB_PCT', 'REB_PCT', 'TM_TOV_PCT', 'EFG_PCT',
-       'TS_PCT', 'USG_PCT', 'PACE', 'PACE_PER40',
-       'PIE', 'POSS', 'FGM', 'FGA', 'FGM_PG', 'FGA_PG',
-       'FG_PCT','AVAILABLE_FLAG', 'MIN_SEC']]
-    df['SEASON_START'] = str(season_start_year)
-    df['SEASON_END'] = str(season_start_year+1)
-    df['PLAYER_NAME'] = df['PLAYER_NAME'].replace('Jimmy Butler III','Jimmy Butler')  
-    df['MIN_SEC'] = df['MIN_SEC'].apply(lambda x: int(x.split(':')[0])+int(x.split(':')[1])/60)
-    return df
+    season_end = str(season_start_year + 1)[2:]
+
+    for attempt in range(retries):
+        try:
+            df=playergamelogs.PlayerGameLogs(season_type_nullable='Regular Season',season_nullable=f'{season_begin}-{season_end}',date_from_nullable=date_from,date_to_nullable = date_to,
+                measure_type_player_game_logs_nullable='Advanced').get_data_frames()[0][['SEASON_YEAR', 'PLAYER_ID', 'PLAYER_NAME', 'NICKNAME', 'TEAM_ID',
+                'TEAM_ABBREVIATION', 'TEAM_NAME', 'GAME_ID', 'GAME_DATE', 'MATCHUP',
+                'WL', 'MIN', 'OFF_RATING','DEF_RATING','NET_RATING', 'AST_PCT', 'AST_TO', 'AST_RATIO',
+                'OREB_PCT', 'DREB_PCT', 'REB_PCT', 'TM_TOV_PCT', 'EFG_PCT',
+                'TS_PCT', 'USG_PCT', 'PACE', 'PACE_PER40',
+                'PIE', 'POSS', 'FGM', 'FGA', 'FGM_PG', 'FGA_PG',
+                'FG_PCT','AVAILABLE_FLAG', 'MIN_SEC']]
+            df['SEASON_START'] = str(season_start_year)
+            df['SEASON_END'] = str(season_start_year+1)
+            df['PLAYER_NAME'] = df['PLAYER_NAME'].replace('Jimmy Butler III','Jimmy Butler')  
+            df['MIN_SEC'] = df['MIN_SEC'].apply(lambda x: int(x.split(':')[0])+int(x.split(':')[1])/60)
+            return df
+
+        except (ReadTimeout, ConnectionError) as e:
+            print(f"⏳ Timeout occurred (attempt {attempt + 1}/{retries}). Retrying in {delay}s...")
+            time.sleep(delay)
+
+    raise Exception("Failed to retrieve player game logs after multiple attempts.")
 
 
 for start in range(season_start_year,season_end_year):
     league_player_regularseason_gamelogs=pd.concat([league_player_regularseason_gamelogs,get_player_game_logs(start,formatted_date_from,formatted_date_to)],axis=0)
-    time.sleep(5)
-
-
-for start in range(season_start_year,season_end_year):
     league_player_regularseason_gamelogs_advanced=pd.concat([league_player_regularseason_gamelogs_advanced,get_player_game_logs_advanced(start,formatted_date_from,formatted_date_to)],axis=0)
-    time.sleep(5)
+   
 
 
 def insert_league_player_regularseason_gamelogs(df, conn):

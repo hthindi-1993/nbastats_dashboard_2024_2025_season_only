@@ -18,18 +18,20 @@ query = "SELECT MAX(GAME_DATE) as LastGameDate from NBA_PLAYER_GAMELOGS_REGULARS
 
 LastGameDate = run_query(db_path,query)['LastGameDate'].iloc[0] #returns most recent date of last game played in NBA DB
 dt = datetime.fromisoformat(LastGameDate)
+dt_today = datetime.now()
 dt_minus_2 = dt - timedelta(days=2)
 formatted_date_from = f"{dt_minus_2.month}/{dt_minus_2.day}/{dt_minus_2.year}"
+formatted_date_to = f"{dt_today.month}/{dt_today.day}/{dt_today.year}"
 
 
 league_player_regularseason_gamelogs = pd.DataFrame()
 league_player_regularseason_gamelogs_advanced = pd.DataFrame()
 
 
-def get_player_game_logs(season_start_year,date_from):
+def get_player_game_logs(season_start_year,date_from,date_to):
     season_begin = str(season_start_year)
     season_end = str(season_start_year+1)[2:]
-    df=playergamelogs.PlayerGameLogs(season_type_nullable='Regular Season',season_nullable=f'{season_begin}-{season_end}',date_from_nullable=date_from).get_data_frames()[0][[
+    df=playergamelogs.PlayerGameLogs(season_type_nullable='Regular Season',season_nullable=f'{season_begin}-{season_end}',date_from_nullable=date_from,date_to_nullable = date_to).get_data_frames()[0][[
     'SEASON_YEAR', 'PLAYER_ID', 'PLAYER_NAME', 'NICKNAME', 'TEAM_ID',
        'TEAM_ABBREVIATION', 'TEAM_NAME', 'GAME_ID', 'GAME_DATE', 'MATCHUP',
        'WL', 'MIN', 'FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A', 'FG3_PCT', 'FTM',
@@ -43,10 +45,10 @@ def get_player_game_logs(season_start_year,date_from):
     df['MIN_SEC'] = df['MIN_SEC'].apply(lambda x: int(x.split(':')[0])+int(x.split(':')[1])/60)
     return df
 
-def get_player_game_logs_advanced(season_start_year,date_from):
+def get_player_game_logs_advanced(season_start_year,date_from,date_to):
     season_begin = str(season_start_year)
     season_end = str(season_start_year+1)[2:]
-    df=playergamelogs.PlayerGameLogs(season_type_nullable='Regular Season',season_nullable=f'{season_begin}-{season_end}',date_from_nullable=date_from,
+    df=playergamelogs.PlayerGameLogs(season_type_nullable='Regular Season',season_nullable=f'{season_begin}-{season_end}',date_from_nullable=date_from,date_to_nullable = date_to,
     measure_type_player_game_logs_nullable='Advanced').get_data_frames()[0][['SEASON_YEAR', 'PLAYER_ID', 'PLAYER_NAME', 'NICKNAME', 'TEAM_ID',
        'TEAM_ABBREVIATION', 'TEAM_NAME', 'GAME_ID', 'GAME_DATE', 'MATCHUP',
        'WL', 'MIN', 'OFF_RATING','DEF_RATING','NET_RATING', 'AST_PCT', 'AST_TO', 'AST_RATIO',
@@ -62,9 +64,9 @@ def get_player_game_logs_advanced(season_start_year,date_from):
 
 
 for start in range(season_start_year,season_end_year):
-    league_player_regularseason_gamelogs=pd.concat([league_player_regularseason_gamelogs,get_player_game_logs(start,formatted_date_from)],axis=0)
+    league_player_regularseason_gamelogs=pd.concat([league_player_regularseason_gamelogs,get_player_game_logs(start,formatted_date_from,formatted_date_to)],axis=0)
     time.sleep(1.5)
-    league_player_regularseason_gamelogs_advanced=pd.concat([league_player_regularseason_gamelogs_advanced,get_player_game_logs_advanced(start,formatted_date_from)],axis=0)
+    league_player_regularseason_gamelogs_advanced=pd.concat([league_player_regularseason_gamelogs_advanced,get_player_game_logs_advanced(start,formatted_date_from,formatted_date_to)],axis=0)
     time.sleep(1.5)
 
 

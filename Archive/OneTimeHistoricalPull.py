@@ -24,7 +24,7 @@ league_player_regularseason_gamelogs_advanced = pd.DataFrame()
 def get_player_game_logs(season_start_year):
     season_begin = str(season_start_year)
     season_end = str(season_start_year+1)[2:]
-    df=playergamelogs.PlayerGameLogs(season_type_nullable='Regular Season',season_nullable=f'{season_begin}-{season_end}',date_to_nullable='3/22/2025').get_data_frames()[0][[
+    df=playergamelogs.PlayerGameLogs(season_type_nullable='Regular Season',season_nullable=f'{season_begin}-{season_end}',date_to_nullable='3/24/2025').get_data_frames()[0][[
     'SEASON_YEAR', 'PLAYER_ID', 'PLAYER_NAME', 'NICKNAME', 'TEAM_ID',
        'TEAM_ABBREVIATION', 'TEAM_NAME', 'GAME_ID', 'GAME_DATE', 'MATCHUP',
        'WL', 'MIN', 'FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A', 'FG3_PCT', 'FTM',
